@@ -1,17 +1,19 @@
 // ============================================================
 // GameScene — main gameplay
+// $POP removed — only pipe-clearing contributes to score.
+// Powerup pickups (shield/crown/speed) still spawn.
 // ============================================================
 import Phaser from 'phaser';
 import {
-  BIRD, PIPES, SPEED, POWERUPS, PICKUPS, RESPAWN, COLORS
+  BIRD, PIPES, SPEED, POWERUPS, RESPAWN, COLORS
 } from '../../config.js';
-import { GameAPI } from '../net/GameAPI.js';
+import { GameAPI } from '../net/api.js';
 import Bird from '../objects/Bird.js';
 import Pipe from '../objects/Pipe.js';
 import Pickup from '../objects/Pickup.js';
 import Background from '../objects/Background.js';
 import { createRng, randomSeed } from '../sim/rng.js';
-import { spawnPipe } from '../sim/physics.js';
+import { spawnPipe, SIM } from '../sim/physics.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor(){
@@ -24,7 +26,6 @@ export default class GameScene extends Phaser.Scene {
 
     // -------------- Run state --------------
     this.score = 0;
-    this.pop = 0;
     this.distance = 0;
     this.lastPipeDist = -PIPES.INTERVAL_PX * 0.5;
     this.activePowerups = [];
@@ -34,15 +35,13 @@ export default class GameScene extends Phaser.Scene {
     this.running = true;
 
     // ---- Deterministic RNG + input recording (anti-cheat) ----
-    // Seed comes from server when session starts; fall back to local random for solo-dev.
     const sessionSeed = this.registry.get('sessionSeed');
     this.seed = (typeof sessionSeed === 'number') ? sessionSeed : randomSeed();
     this.registry.set('sessionSeed', this.seed);
     this.rng = createRng(this.seed);
-    this.inputs = [];   // [{ frame, type: 'flap' }]
+    this.inputs = [];
 
     this.registry.set('score', 0);
-    this.registry.set('pop', 0);
 
     // -------------- Entities --------------
     this.bg = new Background(this);
@@ -60,9 +59,6 @@ export default class GameScene extends Phaser.Scene {
     this.registry.set('loadout', []);
 
     // -------------- Input --------------
-    // We record frame+1 because the flap's velocity only takes effect on the
-    // NEXT update() tick (which increments frame and then runs physics).
-    // Server simulator applies inputs at the start of its matching frame.
     const flap = () => {
       if (!this.alive || !this.running) { this.bird.flap(); return; }
       this.inputs.push({ frame: this.frame + 1, type: 'flap' });
@@ -72,7 +68,7 @@ export default class GameScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-SPACE', flap);
     this.input.keyboard.on('keydown-UP', flap);
 
-    // -------------- Physics overlap: bird.sprite ↔ pickups --------------
+    // -------------- Physics overlap: bird ↔ powerup pickups --------------
     this.physics.add.overlap(this.bird.sprite, this.pickups, (birdSprite, pickup) => {
       if (pickup.collected) return;
       this.collectPickup(pickup);
@@ -80,7 +76,6 @@ export default class GameScene extends Phaser.Scene {
 
     // -------------- HUD reset --------------
     this.events.emit('ui:score', 0);
-    this.events.emit('ui:pop', 0);
     this.events.emit('ui:powerups', this.activePowerups);
   }
 
@@ -99,8 +94,7 @@ export default class GameScene extends Phaser.Scene {
 
     if (!this.running) return;
 
-    // Scroll world — fixed-step DT so the server replay simulator produces
-    // the same numbers. Phaser is configured for fixed 60fps in main.js.
+    // Scroll world — fixed-step for server replay determinism
     const scrollDx = this.getSpeed() * (1/60);
     this.distance += scrollDx;
 
@@ -126,12 +120,12 @@ export default class GameScene extends Phaser.Scene {
       this.lastPipeDist = this.distance;
     }
 
-    // Score
+    // Score (on pipe cleared)
     for (const p of this.pipes){
       if (!p.scored && p.x + PIPES.WIDTH < this.bird.x){
         p.scored = true;
         const crown = this.activePowerups.find(a => a.type === 'crown');
-        const mult = crown ? PICKUPS.CROWN_MULT : 1;
+        const mult = crown ? SIM.CROWN_MULT : 1;
         this.score += 1 * mult;
         this.registry.set('score', this.score);
         this.events.emit('ui:score', this.score);
@@ -181,17 +175,13 @@ export default class GameScene extends Phaser.Scene {
     return Phaser.Math.Linear(PIPES.GAP_MAX, PIPES.GAP_MIN, t);
   }
 
-  // Deterministic spawn — uses the shared sim/physics.spawnPipe so the
-  // server replay validator hits the exact same pipe layouts.
+  // Deterministic spawn — shared sim module for backend replay parity.
+  // spawn.popSpawn is ignored (we removed $POP pickups).
   spawnPipePair(){
     const spawn = spawnPipe(this.rng, this.score);
     this.pipes.push(new Pipe(this, this.W + 20, spawn.gapY, spawn.gapH, this.H));
 
-    if (spawn.popSpawn){
-      const y = spawn.gapY + spawn.gapH/2 + spawn.popOffsetY;
-      const pk = new Pickup(this, this.W + 20 + PIPES.WIDTH/2, y, null);
-      this.pickups.add(pk);
-    }
+    // Only powerup pickups spawn now.
     if (spawn.powerupSpawn && spawn.powerupType){
       const pk = new Pickup(
         this, this.W + 20 + PIPES.WIDTH/2 + 90,
@@ -203,24 +193,14 @@ export default class GameScene extends Phaser.Scene {
 
   collectPickup(pk){
     pk.collect();
-    if (pk.isPowerup){
-      this.applyPowerup(pk.type, POWERUPS.DURATION_MS);
-      this.events.emit('ui:combo', pk.type.toUpperCase(), pk.x, pk.y);
-      this.events.emit('ui:powerups', this.activePowerups);
-      this.tone(600, 0.08, 'square', 0.12);
-      this.time.delayedCall(60, () => this.tone(900, 0.08, 'square', 0.1));
-      this.time.delayedCall(120, () => this.tone(1200, 0.12, 'square', 0.1));
-      this.emitBurst(pk.x, pk.y, COLORS.GOLD, 18);
-    } else {
-      const crown = this.activePowerups.find(a => a.type === 'crown');
-      const gain = crown ? PICKUPS.CROWN_MULT : 1;
-      this.pop += gain;
-      this.registry.set('pop', this.pop);
-      this.events.emit('ui:pop', this.pop);
-      this.tone(1400, 0.06, 'sine', 0.12);
-      this.time.delayedCall(40, () => this.tone(1800, 0.08, 'sine', 0.1));
-      this.emitBurst(pk.x, pk.y, COLORS.PINK, 8);
-    }
+    // Only powerups exist now — no $POP branch.
+    this.applyPowerup(pk.type, POWERUPS.DURATION_MS);
+    this.events.emit('ui:combo', pk.type.toUpperCase(), pk.x, pk.y);
+    this.events.emit('ui:powerups', this.activePowerups);
+    this.tone(600, 0.08, 'square', 0.12);
+    this.time.delayedCall(60, () => this.tone(900, 0.08, 'square', 0.1));
+    this.time.delayedCall(120, () => this.tone(1200, 0.12, 'square', 0.1));
+    this.emitBurst(pk.x, pk.y, COLORS.GOLD, 18);
   }
 
   checkPipeCollision(){
@@ -316,13 +296,11 @@ export default class GameScene extends Phaser.Scene {
       seed: this.seed,
       inputs: this.inputs,
       claimedScore: this.score,
-      claimedPop: this.pop,
       claimedFrames: this.frame,
     });
     const stats = await GameAPI.getStats();
     this.scene.get('UI').showGameOver({
       score: this.score,
-      pop: this.pop,
       best: stats.score || 0,
     });
   }

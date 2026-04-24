@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 // --------------------------------------------------------------------
 // @solana/web3.js v2 was renamed to @solana/kit. The @solana-program/*
@@ -30,9 +31,17 @@ export default defineConfig({
   plugins: [
     solanaKitRedirect(),
     react(),
+    nodePolyfills({
+      include: ['buffer', 'process', 'crypto', 'stream', 'util'],
+      globals: {
+        Buffer: true,
+        global: true,
+        process: true,
+      },
+      protocolImports: true,
+    }),
     VitePWA({
       registerType: 'autoUpdate',
-      // Inject a tiny registration script + auto-update flow into index.html
       injectRegister: 'auto',
       includeAssets: [
         'favicon.svg',
@@ -51,35 +60,17 @@ export default defineConfig({
         start_url: '/',
         categories: ['games', 'entertainment'],
         icons: [
-          {
-            src: '/icons/icon-192.png',
-            sizes: '192x192',
-            type: 'image/png',
-            purpose: 'any',
-          },
-          {
-            src: '/icons/icon-512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any',
-          },
-          {
-            src: '/icons/maskable-512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'maskable',
-          },
+          { src: '/icons/icon-192.png',     sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icons/icon-512.png',     sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {
-        // Precache: all JS/CSS/font assets emitted by Vite build
         globPatterns: ['**/*.{js,css,html,svg,png,ico,webp,woff2}'],
-        // Main bundle is >4MB (Privy + Solana). Bump the threshold so it precaches.
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api/, /^\/meta/, /^\/session/, /^\/entitlement/, /^\/score/, /^\/leaderboard/],
         runtimeCaching: [
-          // Google Fonts — CacheFirst, long TTL
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
@@ -97,8 +88,6 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] },
             },
           },
-          // Backend /meta/* — NetworkFirst so prices stay fresh, but we can
-          // render something if the network blips during a session.
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/meta/'),
             handler: 'NetworkFirst',
@@ -109,12 +98,10 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] },
             },
           },
-          // NEVER cache auth'd endpoints — intentionally fall through to network
-          // (session, entitlement, score, leaderboard/me all need live state)
         ],
       },
       devOptions: {
-        enabled: false,          // set true to test SW behavior in dev
+        enabled: false,
         type: 'module',
       },
     }),
@@ -132,6 +119,15 @@ export default defineConfig({
     global: 'globalThis',
   },
   optimizeDeps: {
+    // Pre-bundle the heavy libs we actually use directly.
     include: ['@solana/web3.js', '@solana/spl-token', '@privy-io/react-auth', 'phaser'],
+    // Exclude the @solana-program/* transitive chain so the solanaKitRedirect
+    // plugin above can redirect their "@solana/web3.js" imports at resolve time
+    // (optimizeDeps runs first and would otherwise hit the incompatible imports).
+    exclude: [
+      '@solana-program/system',
+      '@solana-program/token',
+      '@solana/kit',
+    ],
   },
 });

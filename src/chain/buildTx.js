@@ -5,6 +5,13 @@
 // contains three SystemProgram.transfer instructions — ops / buyback
 // / prize — so the split is enforced cryptographically at payment time.
 // No wallet ever holds the combined amount.
+//
+// Env var handling:
+//  - In MOCK mode (VITE_USE_MOCK_API=true), these constants may be
+//    placeholders; real payment code is never invoked.
+//  - In LIVE mode, missing env vars must crash loud. Silent fallbacks
+//    would let a deploy go out pointing at System Program / zero
+//    addresses, breaking every check without any visible error.
 // ============================================================
 import {
   Connection,
@@ -17,16 +24,28 @@ import {
   createBurnCheckedInstruction,
 } from '@solana/spl-token';
 
+const IS_MOCK = import.meta.env.VITE_USE_MOCK_API === 'true';
+
+function requiredEnv(name) {
+  const v = import.meta.env[name];
+  if (v && v.length > 0) return v;
+  if (IS_MOCK) return '11111111111111111111111111111111'; // placeholder — never used in mock mode
+  throw new Error(
+    `[buildTx] Missing required env var: ${name}. ` +
+    `Set it in .env (or your hosting platform's env config) before deploying with VITE_USE_MOCK_API=false.`
+  );
+}
+
 const RPC_URL = import.meta.env.VITE_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
-export const BIRD_MINT = new PublicKey(import.meta.env.VITE_BIRD_MINT || '11111111111111111111111111111111');
 
-export const OPS_MULTISIG = new PublicKey(import.meta.env.VITE_OPS_MULTISIG || '11111111111111111111111111111111');
-export const BUYBACK_WALLET = new PublicKey(import.meta.env.VITE_BUYBACK_WALLET || '11111111111111111111111111111111');
-export const PRIZE_WALLET = new PublicKey(import.meta.env.VITE_PRIZE_WALLET || '11111111111111111111111111111111');
+export const BIRD_MINT       = new PublicKey(requiredEnv('VITE_BIRD_MINT'));
+export const OPS_MULTISIG    = new PublicKey(requiredEnv('VITE_OPS_MULTISIG'));
+export const BUYBACK_WALLET  = new PublicKey(requiredEnv('VITE_BUYBACK_WALLET'));
+export const PRIZE_WALLET    = new PublicKey(requiredEnv('VITE_PRIZE_WALLET'));
 
-const SPLIT_OPS_BPS = parseInt(import.meta.env.VITE_SPLIT_OPS_BPS || '2000', 10);
+const SPLIT_OPS_BPS     = parseInt(import.meta.env.VITE_SPLIT_OPS_BPS     || '2000', 10);
 const SPLIT_BUYBACK_BPS = parseInt(import.meta.env.VITE_SPLIT_BUYBACK_BPS || '5000', 10);
-const SPLIT_PRIZE_BPS = parseInt(import.meta.env.VITE_SPLIT_PRIZE_BPS || '3000', 10);
+const SPLIT_PRIZE_BPS   = parseInt(import.meta.env.VITE_SPLIT_PRIZE_BPS   || '3000', 10);
 
 if (SPLIT_OPS_BPS + SPLIT_BUYBACK_BPS + SPLIT_PRIZE_BPS !== 10000) {
   console.warn(

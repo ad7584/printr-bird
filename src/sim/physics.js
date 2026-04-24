@@ -1,6 +1,11 @@
 // ============================================================
 // MIRROR of printr-bird-backend/src/sim/physics.js.
 // Keep byte-for-byte. Any drift breaks replay verification.
+//
+// NOTE: $POP pickups were removed from the game. Fields named POP_*
+//       are retained here (forced to 0% spawn) so the deterministic RNG
+//       sequence and frame numbers stay compatible with previously-
+//       recorded runs. Do not re-enable without bumping a sim version.
 // ============================================================
 
 export const SIM = {
@@ -25,7 +30,10 @@ export const SIM = {
   PIPE_GAP_MIN: 140,
   PIPE_MARGIN: 70,
 
-  POP_SPAWN_CHANCE: 0.6,
+  // $POP removed — set spawn chance to 0 but keep the field so the RNG
+  // call sequence in spawnPipe() is unchanged (backend replay sims
+  // consume the same number of rng() calls per pipe).
+  POP_SPAWN_CHANCE: 0,
   POWERUP_SPAWN_CHANCE: 0.08,
   PICKUP_HITBOX_R: 12,
   POP_Y_JITTER: 30,
@@ -33,7 +41,7 @@ export const SIM = {
   POWERUP_DURATION_FRAMES: Math.round(8000 / (1000 / 60)),
   PRE_GAME_POWERUP_FRAMES: Math.round(12000 / (1000 / 60)),
   RESPAWN_SHIELD_FRAMES: Math.round(2000 / (1000 / 60)),
-  CROWN_MULT: 2,
+  CROWN_MULT: 2,   // now applies to SCORE only (formerly score + pop)
 
   MAX_REVIVES_PER_RUN: 3,
 };
@@ -52,6 +60,9 @@ export function getGap(score) {
   return lerp(SIM.PIPE_GAP_MAX, SIM.PIPE_GAP_MIN, t);
 }
 
+// spawnPipe signature preserved for backend replay compatibility.
+// popSpawn always returns false now (POP_SPAWN_CHANCE = 0) — the client
+// simply ignores the popSpawn field when rendering.
 export function spawnPipe(rng, score) {
   const gapH = getGap(score);
   const margin = SIM.PIPE_MARGIN;
@@ -60,7 +71,7 @@ export function spawnPipe(rng, score) {
   const gapY = margin + r1 * (SIM.HEIGHT - gapH - margin * 2);
 
   const r2 = rng();
-  const popSpawn = r2 < SIM.POP_SPAWN_CHANCE;
+  const popSpawn = r2 < SIM.POP_SPAWN_CHANCE;  // always false now
 
   const r3 = rng();
   const popOffsetY = (r3 - 0.5) * SIM.POP_Y_JITTER;
