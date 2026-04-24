@@ -33,54 +33,168 @@ body{
   user-select:none;
 }
 
+#root{ width:100vw; height:100vh; }
+
 #gameWrap{
   position:relative;
   width:100vw;
   height:100vh;
   max-width:480px;
   max-height:100vh;
+  margin:0 auto;
   overflow:hidden;
 }
 
-#game{
-  width:100%;
-  height:100%;
-}
+#game{ width:100%; height:100%; }
+#game canvas{ display:block; width:100% !important; height:100% !important; }
 
-#game canvas{
-  display:block;
-  width:100% !important;
-  height:100% !important;
+/* ============================================================
+   Login gate
+   ============================================================ */
+.gate{
+  position:absolute; inset:0;
+  z-index:50;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(5,2,10,0.92);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.gate-inner{
+  text-align:center;
+  max-width:340px;
+  padding:32px 24px;
+}
+.gate-title{
+  font-family:'Space Grotesk','Inter',sans-serif;
+  font-weight:800;
+  font-size:46px;
+  letter-spacing:-0.02em;
+  line-height:1;
+  color:#fff;
+}
+.gate-title .accent{
+  color:var(--pink);
+  text-shadow:0 0 30px rgba(255,30,142,0.6);
+}
+.gate-tag{
+  margin-top:10px;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:11px;
+  letter-spacing:0.35em;
+  color:#888;
+}
+.gate-copy{
+  margin:24px 0 28px;
+  font-size:14px;
+  color:#bbb;
+  line-height:1.5;
+}
+.gate-btn{
+  width:100%;
+  padding:16px 24px;
+  border:0;
+  border-radius:28px;
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;
+  font-size:15px;
+  letter-spacing:0.15em;
+  color:#fff;
+  background:linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%);
+  cursor:pointer;
+  box-shadow:0 8px 32px rgba(255,30,142,0.35);
+  transition:transform 0.15s ease;
+}
+.gate-btn:hover{ transform:translateY(-2px); }
+.gate-btn:active{ transform:translateY(0); }
+.gate-fineprint{
+  margin-top:18px;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:10px;
+  letter-spacing:0.25em;
+  color:#555;
+  text-transform:uppercase;
+}
+.gate-loading .gate-sub{
+  margin-top:12px;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:11px;
+  letter-spacing:0.35em;
+  color:#666;
+  text-transform:uppercase;
 }
 
 /* ============================================================
-   Dev helper — Holder toggle (remove when wallet connect wired)
+   Wallet badge (top-right)
    ============================================================ */
-.holder-toggle{
+.wallet-badge{
   position:absolute;
-  bottom:14px;
-  left:14px;
+  top:14px;
+  right:14px;
   z-index:20;
-  background:rgba(0,0,0,0.6);
+}
+.wallet-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 14px;
   border:1px solid rgba(255,255,255,0.15);
   border-radius:20px;
-  padding:6px 10px;
-  font-size:10px;
-  font-family:'Space Grotesk','Inter',sans-serif;
+  background:rgba(0,0,0,0.6);
+  color:#fff;
+  font-family:'Space Grotesk',sans-serif;
   font-weight:600;
-  letter-spacing:0.1em;
-  text-transform:uppercase;
-  color:#888;
+  font-size:11px;
+  letter-spacing:0.08em;
   cursor:pointer;
-  pointer-events:auto;
-  user-select:none;
+  backdrop-filter:blur(6px);
 }
-.holder-toggle.on{
-  color:var(--cyan);
-  border-color:var(--cyan);
+.wallet-chip .dot{
+  width:7px; height:7px; border-radius:50%;
+  background:var(--cyan);
+  box-shadow:0 0 8px var(--cyan);
 }
-.holder-toggle.on::before{
-  content:'● ';
+.wallet-menu{
+  margin-top:6px;
+  background:rgba(5,2,10,0.95);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:12px;
+  overflow:hidden;
+  min-width:140px;
+  backdrop-filter:blur(8px);
+}
+.wallet-menu button{
+  display:block;
+  width:100%;
+  padding:10px 14px;
+  background:transparent;
+  border:0;
+  color:#ddd;
+  text-align:left;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:11px;
+  letter-spacing:0.08em;
+  cursor:pointer;
+}
+.wallet-menu button:hover{
+  background:rgba(255,30,142,0.12);
+  color:#fff;
+}
+
+/* ============================================================
+   Missing env screen
+   ============================================================ */
+.missing-env{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  height:100vh;
+  padding:24px;
+  text-align:center;
+}
+.missing-env h1{ font-size:20px; margin-bottom:12px; }
+.missing-env code{
+  background:rgba(255,255,255,0.08);
+  padding:2px 8px;
+  border-radius:6px;
+  font-family:'SF Mono',Menlo,monospace;
   color:var(--cyan);
 }
 

@@ -3,6 +3,8 @@
 //   Uses a pre-generated texture (pop_flame, pu_shield, pu_crown, pu_speed)
 //   with a simple wobble tween.
 // ============================================================
+import Phaser from 'phaser';
+
 export default class Pickup extends Phaser.GameObjects.Image {
   constructor(scene, x, y, type = null){
     const key = type ? `pu_${type}` : 'pop_flame';

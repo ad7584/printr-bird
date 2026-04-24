@@ -6,6 +6,7 @@
 // Phase 2: replace this whole class with an Arcade Sprite using
 //          a real texture atlas + Animations.
 // ============================================================
+import Phaser from 'phaser';
 import { BIRD, PHYSICS, COLORS } from '../../config.js';
 
 export default class Bird {

@@ -2,6 +2,7 @@
 // Background — starfield + grid overlay on a deep gradient
 //   Parallax speed scales with current game speed.
 // ============================================================
+import Phaser from 'phaser';
 import { COLORS } from '../../config.js';
 
 export default class Background {

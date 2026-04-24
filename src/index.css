@@ -1,0 +1,3 @@
+/* Vite-served stylesheet — pulls the legacy global stylesheet.
+   Kept separate so we can add Vite-only (scoped) styles here later. */
+@import '/style.css';

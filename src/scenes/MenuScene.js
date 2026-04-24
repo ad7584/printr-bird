@@ -1,6 +1,7 @@
 // ============================================================
 // MenuScene — main menu
 // ============================================================
+import Phaser from 'phaser';
 import { COLORS, BIRD, GAME } from '../../config.js';
 import { GameAPI } from '../net/GameAPI.js';
 import Bird from '../objects/Bird.js';
@@ -47,12 +48,32 @@ export default class MenuScene extends Phaser.Scene {
     this.popVal   = this.makeStat(W * 0.5, statY, '$POP',  '0', '#00F0FF');
     this.gamesVal = this.makeStat(W * 0.8, statY, 'GAMES', '0', '#ffffff');
 
-    // Async load
+    // Async load stats + streak data
     GameAPI.getStats().then(stats => {
       if (!this.scene.isActive()) return;
       this.bestVal.setText(String(stats.score || 0));
       this.popVal.setText(String(stats.pop || 0));
       this.gamesVal.setText(String(stats.games || 0));
+    });
+
+    // Streak pill — rendered only if the user has a multi-day streak going
+    GameAPI.getMe().then(me => {
+      if (!this.scene.isActive()) return;
+      const s = me?.streak?.current ?? 0;
+      if (s >= 2){
+        const pill = this.add.text(W/2, H * 0.66, `🔥 ${s}-DAY STREAK`, {
+          fontFamily: '"Space Grotesk", sans-serif',
+          fontSize: '11px', fontStyle: 'bold', color: '#FFD700',
+          backgroundColor: 'rgba(255, 215, 0, 0.08)',
+          padding: { x: 10, y: 4 },
+        }).setOrigin(0.5).setLetterSpacing(2);
+        if (me.streak.bonusPlaysToday > 0){
+          const bonus = this.add.text(W/2, H * 0.69, `+${me.streak.bonusPlaysToday} bonus plays today`, {
+            fontFamily: '"Inter", sans-serif',
+            fontSize: '10px', color: '#bbbbbb',
+          }).setOrigin(0.5);
+        }
+      }
     });
 
     // ---- Play button ----
@@ -105,8 +126,19 @@ export default class MenuScene extends Phaser.Scene {
   async startGame(){
     if (this._starting) return;
     this._starting = true;
-    const auth = await GameAPI.authorizePlay();
-    if (!auth.authorized){ this._starting = false; return; }
+    // If the user purchased loadout powerups before coming back to Menu
+    // (e.g. clicked "main menu" instead of "play again"), forward them now
+    // so their burns aren't wasted.
+    const stashed = this.registry.get('loadout') || [];
+    const paidLoadout = stashed.filter(p => p && typeof p === 'object' && p.txSignature);
+    const auth = await GameAPI.authorizePlay(paidLoadout);
+    if (!auth.authorized){
+      console.warn('[Menu] play not authorized', auth);
+      this._starting = false;
+      return;
+    }
+    if (typeof auth.seed === 'number') this.registry.set('sessionSeed', auth.seed);
+    this.registry.set('loadout', auth.loadout || paidLoadout.map(p => p.type));
     this.scene.stop('Menu');
     this.scene.start('Game');
     this.scene.launch('UI');

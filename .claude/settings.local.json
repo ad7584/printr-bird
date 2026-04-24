@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js)",
+      "WebSearch",
+      "Bash(mkdir -p \"/c/Users/case0/OneDrive/Documents/GitHub/printr-bird-backend/src/routes\" \"/c/Users/case0/OneDrive/Documents/GitHub/printr-bird-backend/src/privy\" \"/c/Users/case0/OneDrive/Documents/GitHub/printr-bird-backend/src/chain\" \"/c/Users/case0/OneDrive/Documents/GitHub/printr-bird-backend/src/sim\" \"/c/Users/case0/OneDrive/Documents/GitHub/printr-bird-backend/src/workers\" \"/c/Users/case0/OneDrive/Documents/GitHub/printr-bird-backend/src/db\" \"/c/Users/case0/OneDrive/Documents/GitHub/printr-bird-backend/src/lib\")",
+      "Read(//c/Users/case0/OneDrive/Documents/GitHub/printr-bird-backend/**)",
+      "Bash(curl *)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)"
+    ]
+  }
+}

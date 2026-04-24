@@ -5,6 +5,7 @@
 // Phase 2: replace the generateTextures() body with this.load.image()
 //          calls pointing at /assets/*.png from your sprite pack
 // ============================================================
+import Phaser from 'phaser';
 import { COLORS, BIRD, PIPES } from '../../config.js';
 
 export default class PreloadScene extends Phaser.Scene {
@@ -104,12 +105,20 @@ export default class PreloadScene extends Phaser.Scene {
     // glow
     g.fillStyle(COLORS.PINK, 0.25);
     g.fillCircle(size/2, size/2, size/2);
-    // flame body
+    // flame body — Phaser Graphics has no bezierCurveTo, so sample cubics with lineTo
+    const cubic = (p0, p1, p2, p3, steps) => {
+      for (let i = 1; i <= steps; i++){
+        const t = i / steps, mt = 1 - t;
+        const x = mt*mt*mt*p0[0] + 3*mt*mt*t*p1[0] + 3*mt*t*t*p2[0] + t*t*t*p3[0];
+        const y = mt*mt*mt*p0[1] + 3*mt*mt*t*p1[1] + 3*mt*t*t*p2[1] + t*t*t*p3[1];
+        g.lineTo(x, y);
+      }
+    };
     g.fillStyle(COLORS.PINK, 1);
     g.beginPath();
     g.moveTo(size/2, 4);
-    g.bezierCurveTo(size-2, 10, size-2, 22, size/2, size-2);
-    g.bezierCurveTo(2, 22, 2, 10, size/2, 4);
+    cubic([size/2, 4], [size-2, 10], [size-2, 22], [size/2, size-2], 12);
+    cubic([size/2, size-2], [2, 22], [2, 10], [size/2, 4], 12);
     g.closePath();
     g.fillPath();
     // inner bright

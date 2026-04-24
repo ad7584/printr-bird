@@ -1,6 +1,17 @@
 // ============================================================
 // PRINTR BIRD — central config
 // ALL tunable numbers live here. Change, refresh, done.
+//
+// ⚠️  PHYSICS / BIRD / SPEED / PIPES / PICKUPS / POWERUPS values are
+//    ALSO declared in src/sim/physics.js as the SIM constant (which is
+//    mirrored byte-for-byte into the backend for replay verification).
+//
+//    If you change a physics tunable here, you MUST change the matching
+//    SIM value in BOTH:
+//       printr-bird/src/sim/physics.js
+//       printr-bird-backend/src/sim/physics.js
+//    Otherwise the server's replay re-simulation will diverge and every
+//    submitted score will be rejected.
 // ============================================================
 
 export const GAME = {

@@ -1,0 +1,24 @@
+{
+  "name": "printr-bird",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "description": "Printr Bird — Phaser 3 game with Privy wallet + Solana integration",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4173"
+  },
+  "dependencies": {
+    "@privy-io/react-auth": "^2.11.3",
+    "@solana/spl-token": "^0.4.8",
+    "@solana/web3.js": "^1.95.3",
+    "phaser": "3.80.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.2",
+    "vite": "^5.4.8"
+  }
+}
