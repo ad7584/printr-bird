@@ -7,6 +7,7 @@ import LoginGate from './react/LoginGate.jsx';
 import GameShell from './react/GameShell.jsx';
 import BridgeSync from './react/BridgeSync.jsx';
 import BrandFooter from './react/BrandFooter.jsx';
+import PWAInstallBanner from './react/PWAInstallBanner.jsx';
 
 const PRIVY_APP_ID = import.meta.env.VITE_PRIVY_APP_ID;
 const SOLANA_RPC_URL = import.meta.env.VITE_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
@@ -52,6 +53,7 @@ export default function App() {
         <GameShell />
         <LoginGate />
         <BrandFooter />
+        <PWAInstallBanner />
       </div>
     </PrivyProvider>
   );

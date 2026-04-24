@@ -15,6 +15,7 @@ Everything backend + frontend is in place. **Your job**: wire a real Privy app, 
 | Solana tx builders | Done — `src/chain/buildTx.js` (SOL transfer, $BIRD burn) |
 | HTTP client → backend | Done — `src/net/GameAPI.js` |
 | Pre-game powerup on-chain flow | Done — clicks sign + burn; receipts forwarded to `/session/start` |
+| PWA (installable, offline app shell, install prompt) | Done — icons are placeholders, see PWA section |
 | Escalating revive prices (server-driven) | Done — rendered with USD + rank badge |
 | Streak badge | Done — shown on Menu when current streak ≥ 2 |
 | Near-miss panel | Done — shown on Game Over when within striking distance of prizes |
@@ -193,6 +194,31 @@ I've added a big warning to `config.js`. If you tune physics, change all three f
 - **$BIRD decimals**: currently hardcoded to 6 in `src/chain/buildTx.js` (`VITE_BIRD_DECIMALS`). Most meme mints are 6 or 9. If yours differs, set the env var.
 - **No Phaser teardown on logout**: game stays mounted. If you want logout to kill the Phaser instance, add `_gameInstance?.destroy(true)` in `src/phaser/bootstrap.js` and call it from `GameShell` on `!authenticated`.
 - **Anonymous first play**: currently login required before any play. "First play free" logic runs on the first authenticated play. If you want zero-friction try-before-signup, add a device-fingerprinted anonymous session endpoint — but that's a real decision, not a bug.
+
+## PWA (installable app)
+
+The frontend is a fully-installable PWA. Users can "Add to Home Screen" on iOS/Android and launch it in standalone mode (no browser chrome). A subtle install banner auto-appears on Chrome/Edge/Android via `beforeinstallprompt`; iOS Safari gets a "Share → Add to Home Screen" hint instead.
+
+**Config** (all in `vite.config.js`):
+- `registerType: 'autoUpdate'` — when you redeploy, clients auto-reload the new SW on next navigation (no update prompt shown to user)
+- Precaches: all JS/CSS/SVG/PNG/WOFF2 from the Vite build (~5.3 MB total)
+- Runtime cache: Google Fonts (CacheFirst, 1yr), backend `/meta/*` (NetworkFirst, 24h, 4s network timeout)
+- **Never cached**: `/session/*`, `/entitlement/*`, `/score/*`, `/leaderboard/me` — these need live state
+
+**Dev**: PWA disabled in dev mode (set `devOptions.enabled: true` in `vite.config.js` if you need to test SW behavior locally). Run `npm run build && npm run preview` to test the full PWA experience; Chrome DevTools → Application → Service Workers/Manifest to inspect.
+
+**Icons (placeholder)**: `public/favicon.svg` is a quick on-brand placeholder. The manifest points at `public/icons/icon-192.png`, `icon-512.png`, `maskable-512.png`, and `apple-touch-icon-180.png` — these don't exist yet. See `public/icons/README.md` for drop-in instructions. Once your designer hands over a 1024×1024 source PNG at `public/icon-source.png`, run `npm run pwa:icons` to auto-generate every required size.
+
+**Install banner**: `src/react/PWAInstallBanner.jsx` — shown once, dismissal persists in `localStorage[pb_install_dismissed]`. Remove the component from `App.jsx` if you want to suppress it entirely.
+
+**Offline behavior**: loading the app shell works offline (precached). Playing a game offline does NOT work — `/session/start` requires live backend auth + server-issued seed. Intentional; that's the anti-cheat model. If the user loses connection mid-game, the in-flight Phaser run continues locally but score submission will fail with a console error and a lost run.
+
+**HTTPS**: required in production. Service workers refuse to register over `http://` except on `localhost`. Whatever host you deploy to (Vercel, Cloudflare Pages, Fly.io, Netlify) must serve HTTPS by default — all of those do.
+
+**iOS quirks**:
+- Apple doesn't fire `beforeinstallprompt`. The iOS hint appears after 10s if the user isn't already in standalone mode.
+- Safari respects `theme-color` for the status bar and `apple-mobile-web-app-status-bar-style: black-translucent` for the notch area.
+- iOS 16.4+ is the first version with usable PWA push notifications and service workers for standalone apps — worth knowing if you later want push notifications for tournament results.
 
 ## Open v2 items (not blocking ship)
 

@@ -199,6 +199,67 @@ body{
 }
 
 /* ============================================================
+   PWA install banner (bottom-anchored, subtle pill)
+   ============================================================ */
+.pwa-banner{
+  position:absolute;
+  bottom:44px;                          /* above brand footer */
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 12px 8px 14px;
+  background:rgba(5,2,10,0.92);
+  border:1px solid rgba(255,30,142,0.35);
+  border-radius:24px;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:12px;
+  color:#ddd;
+  box-shadow:0 4px 20px rgba(255,30,142,0.15);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  z-index:18;
+  animation:pwa-slide-in 0.4s ease-out;
+}
+@keyframes pwa-slide-in{
+  from{ opacity:0; transform:translate(-50%, 10px); }
+  to  { opacity:1; transform:translate(-50%, 0); }
+}
+.pwa-banner-label{
+  letter-spacing:0.05em;
+  white-space:nowrap;
+}
+.pwa-banner-cta{
+  padding:5px 14px;
+  border:0;
+  border-radius:14px;
+  background:linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%);
+  color:#fff;
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;
+  font-size:11px;
+  letter-spacing:0.08em;
+  cursor:pointer;
+}
+.pwa-banner-close{
+  width:22px; height:22px;
+  border:0;
+  border-radius:50%;
+  background:transparent;
+  color:#666;
+  font-size:18px;
+  line-height:1;
+  cursor:pointer;
+  padding:0;
+}
+.pwa-banner-close:hover{ color:#fff; }
+.pwa-banner-ios .pwa-banner-label strong{
+  color:var(--cyan);
+  font-weight:700;
+}
+
+/* ============================================================
    Brand footer
    ============================================================ */
 .brand-footer{
