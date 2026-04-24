@@ -64,13 +64,10 @@ export default class PreloadScene extends Phaser.Scene {
   // Each block produces a texture you can use with this.add.image(key)
   // ============================================================
   generateProceduralTextures(){
-    this.makeBirdTexture();
-    this.makePipeBodyTexture();
-    this.makePipeCapTexture();
     this.makePopTexture();
-    this.makePowerupTexture('pu_shield', COLORS.CYAN, '🛡');
-    this.makePowerupTexture('pu_crown',  COLORS.GOLD, '👑');
-    this.makePowerupTexture('pu_speed',  COLORS.PURPLE, '⚡');
+    this.makePowerupTexture('pu_shield', COLORS.CYAN);
+    this.makePowerupTexture('pu_crown',  COLORS.GOLD);
+    this.makePowerupTexture('pu_speed',  COLORS.PURPLE);
     this.makeParticleTexture();
   }
 
@@ -82,37 +79,27 @@ export default class PreloadScene extends Phaser.Scene {
     g.destroy();
   }
 
-  makeBirdTexture(){
-    // We draw the bird procedurally in the Bird object itself (using Graphics)
-    // so it can animate the wing. No static texture needed for Phase 1.
-    // In Phase 2 you'd generate from spritesheet / replace Bird rendering.
-  }
-
-  makePipeBodyTexture(){
-    // Unused — we draw pipes directly with Graphics in Pipe.js for the neon glow.
-    // A static texture wouldn't scale cleanly across viewport heights anyway.
-  }
-
-  makePipeCapTexture(){
-    // Same — drawn inline in Pipe.js.
-  }
-
-  // $POP flame pickup
+  // $POP flame pickup — drawn as a polygon teardrop (Phaser Graphics has no bezier)
   makePopTexture(){
     const size = 28;
     const g = this.add.graphics();
-    // glow
+    // Glow background
     g.fillStyle(COLORS.PINK, 0.25);
     g.fillCircle(size/2, size/2, size/2);
-    // flame body
+    // Flame body (polygon teardrop)
     g.fillStyle(COLORS.PINK, 1);
     g.beginPath();
     g.moveTo(size/2, 4);
-    g.bezierCurveTo(size-2, 10, size-2, 22, size/2, size-2);
-    g.bezierCurveTo(2, 22, 2, 10, size/2, 4);
+    g.lineTo(size - 4, 12);
+    g.lineTo(size - 2, 18);
+    g.lineTo(size/2 + 3, size - 3);
+    g.lineTo(size/2, size - 2);
+    g.lineTo(size/2 - 3, size - 3);
+    g.lineTo(2, 18);
+    g.lineTo(4, 12);
     g.closePath();
     g.fillPath();
-    // inner bright
+    // Inner bright core
     g.fillStyle(COLORS.GOLD, 1);
     g.fillCircle(size/2, size/2 + 3, 4);
     g.fillStyle(0xffffff, 1);
@@ -122,17 +109,20 @@ export default class PreloadScene extends Phaser.Scene {
   }
 
   // Powerup orb
-  makePowerupTexture(key, color, emoji){
+  makePowerupTexture(key, color){
     const size = 28;
     const g = this.add.graphics();
-    // glow ring
+    // Glow ring
     g.fillStyle(color, 0.3);
     g.fillCircle(size/2, size/2, size/2);
+    // Solid inner circle
     g.fillStyle(color, 1);
     g.fillCircle(size/2, size/2, 10);
+    // White outline
     g.lineStyle(2, 0xffffff, 0.8);
     g.strokeCircle(size/2, size/2, 10);
     g.generateTexture(key, size, size);
     g.destroy();
   }
 }
+
