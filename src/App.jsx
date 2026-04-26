@@ -27,6 +27,14 @@ export default function App() {
     <PrivyProvider
       appId={PRIVY_APP_ID}
       config={{
+        // ----- Solana-only Privy app -----
+        // 1. UI filter (appearance.walletChainType) hides every non-Solana
+        //    wallet option from the connect modal.
+        // 2. embeddedWallets explicitly enables Solana and disables Ethereum
+        //    so an email/social signup does NOT auto-provision an EVM wallet
+        //    alongside the Solana one.
+        // 3. externalWallets only registers Solana connectors (Phantom,
+        //    Solflare, Backpack, etc.) — no MetaMask / WalletConnect EVM.
         appearance: {
           theme: 'dark',
           accentColor: '#FF1E8E',
@@ -37,6 +45,7 @@ export default function App() {
         loginMethods: ['email', 'google', 'twitter', 'wallet'],
         embeddedWallets: {
           solana: { createOnLogin: 'users-without-wallets' },
+          ethereum: { createOnLogin: 'off' },
         },
         externalWallets: {
           solana: {
