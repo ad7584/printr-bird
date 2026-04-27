@@ -1,13 +1,21 @@
 // ============================================================
 // App root — Privy provider + top-level layout.
+//
+// Flow:
+//   not logged in     → LoginGate
+//   logged in, home   → HomeScreen
+//   logged in, playing → Phaser GameShell
 // ============================================================
+import { useState, useEffect } from 'react';
 import { PrivyProvider } from '@privy-io/react-auth';
 import { toSolanaWalletConnectors } from '@privy-io/react-auth/solana';
 import LoginGate from './react/LoginGate.jsx';
 import GameShell from './react/GameShell.jsx';
+import HomeScreen from './react/HomeScreen.jsx';
 import BridgeSync from './react/BridgeSync.jsx';
 import BrandFooter from './react/BrandFooter.jsx';
 import PWAInstallBanner from './react/PWAInstallBanner.jsx';
+import { AuthBridge } from './auth/AuthBridge.js';
 
 const PRIVY_APP_ID = import.meta.env.VITE_PRIVY_APP_ID;
 const SOLANA_RPC_URL = import.meta.env.VITE_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
@@ -58,12 +66,67 @@ export default function App() {
       }}
     >
       <BridgeSync />
-      <div id="gameWrap">
-        <GameShell />
-        <LoginGate />
-        <BrandFooter />
-        <PWAInstallBanner />
-      </div>
+      <AppShell />
+      <BrandFooter />
+      <PWAInstallBanner />
     </PrivyProvider>
+  );
+}
+
+// ============================================================
+// AppShell — picks which screen to render based on auth + route
+// ============================================================
+function AppShell() {
+  const [snap, setSnap] = useState(AuthBridge.getSnapshot());
+  const [view, setView] = useState('home'); // 'home' | 'game'
+  const [bestScore, setBestScore] = useState(() => {
+    try { return parseInt(localStorage.getItem('pb_best_score') || '0', 10); }
+    catch { return 0; }
+  });
+
+  useEffect(() => AuthBridge.subscribe(setSnap), []);
+
+  // Listen for Phaser → React signal "user finished, take me back home"
+  useEffect(() => {
+    const onReturnHome = (e) => {
+      const score = e?.detail?.bestScore;
+      if (typeof score === 'number') {
+        setBestScore((prev) => {
+          const next = Math.max(prev, score);
+          try { localStorage.setItem('pb_best_score', String(next)); } catch {}
+          return next;
+        });
+      }
+      setView('home');
+    };
+    window.addEventListener('printr:return-home', onReturnHome);
+    return () => window.removeEventListener('printr:return-home', onReturnHome);
+  }, []);
+
+  const handleStartGame = () => setView('game');
+
+  // Not logged in → LoginGate (Phaser/Home both hidden)
+  if (!snap.authenticated) {
+    return (
+      <div id="gameWrap">
+        <LoginGate />
+      </div>
+    );
+  }
+
+  // Logged in + home view → HomeScreen
+  if (view === 'home') {
+    return (
+      <div id="gameWrap" className="gameWrap-home">
+        <HomeScreen onStartGame={handleStartGame} bestScore={bestScore} />
+      </div>
+    );
+  }
+
+  // Logged in + game view → Phaser
+  return (
+    <div id="gameWrap">
+      <GameShell />
+    </div>
   );
 }

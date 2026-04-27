@@ -1,278 +1,523 @@
 /* ============================================================
-   Printr Bird — global styling
-   Brand kit: Printr pink/purple/blue/cyan on black
-   ============================================================ */
-:root{
-  --pink:#FF1E8E;
-  --purple:#8B5CF6;
-  --blue:#3B82F6;
-  --cyan:#00F0FF;
-  --white:#FFFFFF;
-  --bg:#05020a;
+   Printr Bird — global styles
+   Brand: FF1E8E (pink) · 8B5CF6 (purple) · 3B82F6 (blue)
+          00F0FF (cyan) · 0a0318 (deep space)
+   Type: Space Grotesk (display) · Inter (body)
+============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;700&display=swap');
+
+:root {
+  --pb-pink:    #FF1E8E;
+  --pb-purple:  #8B5CF6;
+  --pb-blue:    #3B82F6;
+  --pb-cyan:    #00F0FF;
+  --pb-bg:      #0a0318;
+  --pb-bg-card: rgba(20, 8, 38, 0.6);
+  --pb-border:  rgba(255, 255, 255, 0.08);
+  --pb-text:    #ffffff;
+  --pb-muted:   #9aa0b3;
 }
 
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+* { box-sizing: border-box; }
 
-html,body{
-  height:100%;
-  overflow:hidden;
-  background:var(--bg);
-  color:#fff;
-  font-family:'Inter',system-ui,-apple-system,sans-serif;
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  background: var(--pb-bg);
+  color: var(--pb-text);
+  font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-body{
-  display:flex;
-  align-items:center;
-  justify-content:center;
+body { -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+
+/* Background ambient gradient — applies to everything */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
   background:
-    radial-gradient(ellipse at 20% 10%, rgba(139,92,246,0.18), transparent 50%),
-    radial-gradient(ellipse at 80% 90%, rgba(255,30,142,0.15), transparent 50%),
-    var(--bg);
-  touch-action:none;
-  user-select:none;
-}
-
-#root{ width:100vw; height:100vh; }
-
-#gameWrap{
-  position:relative;
-  width:100vw;
-  height:100vh;
-  max-width:480px;
-  max-height:100vh;
-  margin:0 auto;
-  overflow:hidden;
-}
-
-#game{ width:100%; height:100%; }
-#game canvas{ display:block; width:100% !important; height:100% !important; }
-
-/* ============================================================
-   Login gate
-   ============================================================ */
-.gate{
-  position:absolute; inset:0;
-  z-index:50;
-  display:flex; align-items:center; justify-content:center;
-  background:rgba(5,2,10,0.92);
-  backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);
-}
-.gate-inner{
-  text-align:center;
-  max-width:340px;
-  padding:32px 24px;
-}
-.gate-title{
-  font-family:'Space Grotesk','Inter',sans-serif;
-  font-weight:800;
-  font-size:46px;
-  letter-spacing:-0.02em;
-  line-height:1;
-  color:#fff;
-}
-.gate-title .accent{
-  color:var(--pink);
-  text-shadow:0 0 30px rgba(255,30,142,0.6);
-}
-.gate-tag{
-  margin-top:10px;
-  font-family:'Space Grotesk',sans-serif;
-  font-size:11px;
-  letter-spacing:0.35em;
-  color:#888;
-}
-.gate-copy{
-  margin:24px 0 28px;
-  font-size:14px;
-  color:#bbb;
-  line-height:1.5;
-}
-.gate-btn{
-  width:100%;
-  padding:16px 24px;
-  border:0;
-  border-radius:28px;
-  font-family:'Space Grotesk',sans-serif;
-  font-weight:700;
-  font-size:15px;
-  letter-spacing:0.15em;
-  color:#fff;
-  background:linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%);
-  cursor:pointer;
-  box-shadow:0 8px 32px rgba(255,30,142,0.35);
-  transition:transform 0.15s ease;
-}
-.gate-btn:hover{ transform:translateY(-2px); }
-.gate-btn:active{ transform:translateY(0); }
-.gate-fineprint{
-  margin-top:18px;
-  font-family:'Space Grotesk',sans-serif;
-  font-size:10px;
-  letter-spacing:0.25em;
-  color:#555;
-  text-transform:uppercase;
-}
-.gate-loading .gate-sub{
-  margin-top:12px;
-  font-family:'Space Grotesk',sans-serif;
-  font-size:11px;
-  letter-spacing:0.35em;
-  color:#666;
-  text-transform:uppercase;
+    radial-gradient(ellipse at 80% 0%,    rgba(139,92,246,0.18) 0%, transparent 50%),
+    radial-gradient(ellipse at 0% 100%,   rgba(255,30,142,0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 100%, rgba(0,240,255,0.08)  0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* ============================================================
-   Wallet badge (top-right)
-   ============================================================ */
-.wallet-badge{
-  position:absolute;
-  top:14px;
-  right:14px;
-  z-index:20;
+   Game wrapper (Phaser canvas mount + overlays)
+============================================================ */
+#gameWrap {
+  position: relative;
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.wallet-chip{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:8px 14px;
-  border:1px solid rgba(255,255,255,0.15);
-  border-radius:20px;
-  background:rgba(0,0,0,0.6);
-  color:#fff;
-  font-family:'Space Grotesk',sans-serif;
-  font-weight:600;
-  font-size:11px;
-  letter-spacing:0.08em;
-  cursor:pointer;
-  backdrop-filter:blur(6px);
+.gameWrap-home {
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 0;
 }
-.wallet-chip .dot{
-  width:7px; height:7px; border-radius:50%;
-  background:var(--cyan);
-  box-shadow:0 0 8px var(--cyan);
+#game {
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 480/800;
+  position: relative;
+  z-index: 1;
 }
-.wallet-menu{
-  margin-top:6px;
-  background:rgba(5,2,10,0.95);
-  border:1px solid rgba(255,255,255,0.1);
-  border-radius:12px;
-  overflow:hidden;
-  min-width:140px;
-  backdrop-filter:blur(8px);
-}
-.wallet-menu button{
-  display:block;
-  width:100%;
-  padding:10px 14px;
-  background:transparent;
-  border:0;
-  color:#ddd;
-  text-align:left;
-  font-family:'Space Grotesk',sans-serif;
-  font-size:11px;
-  letter-spacing:0.08em;
-  cursor:pointer;
-}
-.wallet-menu button:hover{
-  background:rgba(255,30,142,0.12);
-  color:#fff;
+#game canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
 }
 
 /* ============================================================
-   Missing env screen
-   ============================================================ */
-.missing-env{
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  height:100vh;
-  padding:24px;
-  text-align:center;
+   Login gate (pre-auth overlay)
+============================================================ */
+.gate {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--pb-bg);
+  z-index: 100;
+  padding: 24px;
 }
-.missing-env h1{ font-size:20px; margin-bottom:12px; }
-.missing-env code{
-  background:rgba(255,255,255,0.08);
-  padding:2px 8px;
-  border-radius:6px;
-  font-family:'SF Mono',Menlo,monospace;
-  color:var(--cyan);
+.gate-loading { color: var(--pb-muted); }
+.gate-inner {
+  text-align: center;
+  max-width: 380px;
+  position: relative;
+  z-index: 1;
 }
-
-/* ============================================================
-   PWA install banner (bottom-anchored, subtle pill)
-   ============================================================ */
-.pwa-banner{
-  position:absolute;
-  bottom:44px;                          /* above brand footer */
-  left:50%;
-  transform:translateX(-50%);
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:8px 12px 8px 14px;
-  background:rgba(5,2,10,0.92);
-  border:1px solid rgba(255,30,142,0.35);
-  border-radius:24px;
-  font-family:'Space Grotesk',sans-serif;
-  font-size:12px;
-  color:#ddd;
-  box-shadow:0 4px 20px rgba(255,30,142,0.15);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
-  z-index:18;
-  animation:pwa-slide-in 0.4s ease-out;
+.gate-title, .gate-title-loading {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(40px, 9vw, 64px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px 0;
+  line-height: 1;
 }
-@keyframes pwa-slide-in{
-  from{ opacity:0; transform:translate(-50%, 10px); }
-  to  { opacity:1; transform:translate(-50%, 0); }
+.accent {
+  color: var(--pb-pink);
+  text-shadow: 0 0 30px rgba(255, 30, 142, 0.6);
 }
-.pwa-banner-label{
-  letter-spacing:0.05em;
-  white-space:nowrap;
+.gate-tag {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: var(--pb-muted);
+  margin: 8px 0 24px 0;
 }
-.pwa-banner-cta{
-  padding:5px 14px;
-  border:0;
-  border-radius:14px;
-  background:linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%);
-  color:#fff;
-  font-family:'Space Grotesk',sans-serif;
-  font-weight:700;
-  font-size:11px;
-  letter-spacing:0.08em;
-  cursor:pointer;
+.gate-sub { color: var(--pb-muted); }
+.gate-copy {
+  color: var(--pb-muted);
+  font-size: 14px;
+  margin: 0 0 28px 0;
 }
-.pwa-banner-close{
-  width:22px; height:22px;
-  border:0;
-  border-radius:50%;
-  background:transparent;
-  color:#666;
-  font-size:18px;
-  line-height:1;
-  cursor:pointer;
-  padding:0;
+.gate-btn {
+  background: linear-gradient(90deg, var(--pb-pink), var(--pb-purple));
+  border: 0;
+  color: white;
+  padding: 16px 32px;
+  border-radius: 999px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(255, 30, 142, 0.35);
+  transition: transform 0.15s ease;
 }
-.pwa-banner-close:hover{ color:#fff; }
-.pwa-banner-ios .pwa-banner-label strong{
-  color:var(--cyan);
-  font-weight:700;
+.gate-btn:hover { transform: translateY(-2px); }
+.gate-fineprint {
+  color: var(--pb-muted);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  margin-top: 16px;
 }
 
 /* ============================================================
-   Brand footer
-   ============================================================ */
-.brand-footer{
-  position:absolute;
-  bottom:12px;
-  left:50%;
-  transform:translateX(-50%);
-  font-family:'Space Grotesk','Inter',sans-serif;
-  font-size:9px;
-  letter-spacing:0.4em;
-  color:#444;
-  text-transform:uppercase;
-  z-index:15;
-  pointer-events:none;
+   Wallet badge (in-game corner)
+============================================================ */
+.wallet-badge {
+  position: fixed; top: 12px; right: 12px;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid var(--pb-border);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: white;
+  z-index: 50;
 }
-.brand-footer .p{ color:var(--pink); }
+
+/* ============================================================
+   HomeScreen
+============================================================ */
+.home {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px 16px 80px 16px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Top bar — wallet pill + export */
+.home-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.home-wallet-info {
+  display: flex; align-items: center; gap: 8px;
+}
+.home-wallet-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  color: var(--pb-muted);
+}
+.home-wallet-pill {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--pb-border);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.home-wallet-pill:hover { background: rgba(255,30,142,0.15); }
+.home-wallet-pill:disabled { opacity: 0.5; cursor: default; }
+.home-balance {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--pb-cyan);
+  letter-spacing: 0.05em;
+}
+.home-export {
+  background: transparent;
+  border: 1px solid var(--pb-border);
+  color: var(--pb-muted);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.home-export:hover {
+  border-color: var(--pb-pink);
+  color: var(--pb-pink);
+}
+
+/* Hero — bird + title */
+.home-hero { text-align: center; padding: 16px 0 24px 0; }
+.home-hero-logos { display: flex; justify-content: center; margin-bottom: 12px; }
+.home-hero-bird {
+  width: 140px;
+  height: 140px;
+  background-image: url('/assets/bird-hero.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: drop-shadow(0 0 30px rgba(255,30,142,0.5));
+  /* Floating animation */
+  animation: bird-bob 3s ease-in-out infinite;
+}
+@keyframes bird-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+.home-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(36px, 9vw, 56px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1;
+}
+.home-title-accent {
+  color: var(--pb-pink);
+  text-shadow: 0 0 40px rgba(255, 30, 142, 0.6);
+}
+.home-tagline {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  color: var(--pb-muted);
+  margin: 8px 0 12px 0;
+}
+.home-blurb {
+  font-size: 13px;
+  color: var(--pb-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Generic card */
+.home-card {
+  background: var(--pb-bg-card);
+  border: 1px solid var(--pb-border);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 14px;
+  backdrop-filter: blur(8px);
+}
+.home-card-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: var(--pb-muted);
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+/* Countdown */
+.home-countdown { text-align: center; }
+.home-timer {
+  display: flex; justify-content: center; align-items: center; gap: 6px;
+  margin-bottom: 10px;
+}
+.home-timer-chunk { display: flex; flex-direction: column; align-items: center; min-width: 56px; }
+.home-timer-num {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  background: linear-gradient(180deg, var(--pb-pink), var(--pb-purple));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  line-height: 1;
+}
+.home-timer-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--pb-muted);
+  margin-top: 4px;
+}
+.home-timer-sep {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 28px;
+  color: var(--pb-pink);
+  opacity: 0.4;
+}
+.home-countdown-note {
+  font-size: 11px;
+  color: var(--pb-muted);
+  letter-spacing: 0.05em;
+}
+
+/* Token card */
+.home-token { text-align: center; }
+.home-token-head {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 14px;
+}
+.home-token-logo {
+  width: 52px; height: 52px;
+  background-image: url('/assets/bird-hero.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: 50%;
+  background-color: rgba(255,30,142,0.1);
+  border: 1px solid rgba(255,30,142,0.3);
+  flex-shrink: 0;
+}
+.home-token-meta { text-align: left; }
+.home-token-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--pb-pink);
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+.home-token-sub {
+  font-size: 11px;
+  color: var(--pb-muted);
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+.home-token-ca {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--pb-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  text-align: left;
+}
+.home-token-ca-label {
+  display: block;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: var(--pb-muted);
+  margin-bottom: 4px;
+}
+.home-token-ca-value {
+  display: block;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  color: white;
+  word-break: break-all;
+  letter-spacing: 0.02em;
+}
+.home-token-buy {
+  width: 100%;
+  background: linear-gradient(90deg, var(--pb-pink), var(--pb-purple));
+  border: 0;
+  color: white;
+  padding: 13px;
+  border-radius: 10px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: transform 0.15s;
+}
+.home-token-buy:hover { transform: translateY(-1px); }
+.home-token-fineprint {
+  font-size: 11px;
+  color: var(--pb-muted);
+  line-height: 1.5;
+}
+
+/* Primary CTA row */
+.home-cta-row {
+  display: flex; gap: 10px; align-items: stretch;
+  margin-top: 18px; margin-bottom: 18px;
+}
+.home-cta-primary {
+  flex: 2;
+  background: linear-gradient(135deg, var(--pb-pink) 0%, var(--pb-purple) 100%);
+  border: 0;
+  color: white;
+  padding: 18px;
+  border-radius: 14px;
+  cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  box-shadow: 0 12px 40px rgba(255,30,142,0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.home-cta-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 50px rgba(255,30,142,0.45);
+}
+.home-cta-primary:active { transform: translateY(0); }
+.home-cta-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.18em;
+}
+.home-cta-sub {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  opacity: 0.8;
+}
+.home-best {
+  flex: 1;
+  background: var(--pb-bg-card);
+  border: 1px solid var(--pb-border);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  backdrop-filter: blur(8px);
+}
+.home-best-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  color: var(--pb-muted);
+  text-align: center;
+}
+.home-best-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--pb-cyan);
+  margin-top: 4px;
+  text-shadow: 0 0 20px rgba(0,240,255,0.4);
+}
+
+/* Info badges row */
+.home-info-row {
+  display: flex; gap: 8px;
+  margin-top: 10px;
+}
+.home-info-badge {
+  flex: 1;
+  background: var(--pb-bg-card);
+  border: 1px solid var(--pb-border);
+  border-radius: 10px;
+  padding: 10px 6px;
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+.home-info-emoji { font-size: 18px; line-height: 1; margin-bottom: 4px; color: var(--pb-pink); font-weight: 700; }
+.home-info-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--pb-muted);
+}
+
+/* Brand footer (already exists in repo, leave stable) */
+#brandFooter,
+.brand-footer {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  text-align: center; padding: 10px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.3em;
+  color: var(--pb-muted);
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,0.6));
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* Missing env helper */
+.missing-env {
+  padding: 40px;
+  font-family: monospace;
+  color: var(--pb-pink);
+}
+.missing-env code { background: rgba(255,30,142,0.1); padding: 2px 6px; border-radius: 4px; }
+
+/* Responsive nudges */
+@media (max-width: 380px) {
+  .home-timer-chunk { min-width: 44px; }
+  .home-timer-num { font-size: 26px; }
+  .home-timer-sep { font-size: 22px; }
+  .home-cta-row { flex-direction: column; }
+  .home-cta-primary, .home-best { width: 100%; }
+}
