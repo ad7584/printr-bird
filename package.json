@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@privy-io/react-auth": "^2.11.3",
-    "@solana-program/system": "^0.6.2",
+    "@solana-program/system": "^0.7.0",
     "@solana-program/token": "^0.5.1",
     "@solana/kit": "^2.1.0",
     "@solana/spl-token": "^0.4.8",
